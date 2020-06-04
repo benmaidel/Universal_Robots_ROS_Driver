@@ -21,6 +21,7 @@ global cmd_servo_state = SERVO_UNINITIALIZED
 global cmd_servo_qd = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 global cmd_servo_q = get_actual_joint_positions()
 global cmd_servo_q_last = get_actual_joint_positions()
+global cmd_gravity = [0, 0, 9.82]
 global extrapolate_count = 0
 global extrapolate_max_count = 0
 global control_mode = MODE_UNINITIALIZED
@@ -93,18 +94,36 @@ thread speedThread():
   stopj(5.0)
 end
 
+def setGravity(params):
+  cmd_gravity = [params[9] / MULT_jointstate, params[10] / MULT_jointstate, params[11] / MULT_jointstate]
+end
+
+thread grafityThread():
+  textmsg("Setting Gravity")
+  while True:
+    set_gravity(cmd_gravity[0], cmd_gravity[1], cmd_gravity[2])
+    sync()
+end
+
 socket_open("{{SERVER_IP_REPLACE}}", {{SERVER_PORT_REPLACE}}, "reverse_socket")
 
 control_mode = MODE_UNINITIALIZED
 thread_move = 0
+thread_gravity = 0
 global keepalive = -2
 textmsg("External control active")
-params_mult = socket_read_binary_integer(1+6+1, "reverse_socket")
+# socket_read_binary_integer(keepalive + joint_cmds + control_mode + gravity_vector)
+params_mult = socket_read_binary_integer(1+6+1+3, "reverse_socket")
 keepalive = params_mult[1]
+
+setGravity(params_mult)
+thread_gravity = run gravityThread()
+
 while keepalive > 0 and control_mode > MODE_STOPPED:
   enter_critical
   socket_send_line(1, "reverse_socket")
-  params_mult = socket_read_binary_integer(1+6+1, "reverse_socket", 0.02) # steptime could work as well, but does not work in simulation
+  params_mult = socket_read_binary_integer(1+6+1+3, "reverse_socket", 0.02) # steptime could work as well, but does not work in simulation
+  setGravity(params_mult)
   if params_mult[0] > 0:
     keepalive = params_mult[1]
     if control_mode != params_mult[8]:
