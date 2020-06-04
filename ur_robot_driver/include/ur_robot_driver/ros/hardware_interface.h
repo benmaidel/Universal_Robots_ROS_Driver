@@ -39,6 +39,7 @@
 #include <realtime_tools/realtime_publisher.h>
 #include "tf2_msgs/TFMessage.h"
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <geometry_msgs/Vector3.h>
 
 #include <ur_msgs/IOStates.h>
 #include <ur_msgs/ToolDataMsg.h>
@@ -200,6 +201,7 @@ protected:
   bool resendRobotProgram(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res);
   bool zeroFTSensor(std_srvs::TriggerRequest& req, std_srvs::TriggerResponse& res);
   void commandCallback(const std_msgs::StringConstPtr& msg);
+  void gravityCallback(const geometry_msgs::Vector3ConstPtr& msg);
 
   std::unique_ptr<UrDriver> ur_driver_;
   std::unique_ptr<DashboardClientROS> dashboard_client_;
@@ -230,6 +232,7 @@ protected:
   vector6d_t joint_efforts_;
   vector6d_t fts_measurements_;
   vector6d_t tcp_pose_;
+  vector3d_t gravity_vector_;
   std::bitset<18> actual_dig_out_bits_;
   std::bitset<18> actual_dig_in_bits_;
   std::array<double, 2> standard_analog_input_;
@@ -263,6 +266,7 @@ protected:
   ros::ServiceServer set_io_srv_;
   ros::ServiceServer resend_robot_program_srv_;
   ros::Subscriber command_sub_;
+  ros::Subscriber gravity_sub_;
 
   industrial_robot_status_interface::RobotStatus robot_status_resource_{};
   industrial_robot_status_interface::IndustrialRobotStatusInterface robot_status_interface_{};

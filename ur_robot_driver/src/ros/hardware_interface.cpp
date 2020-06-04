@@ -51,6 +51,7 @@ HardwareInterface::HardwareInterface()
   , joint_positions_{ { 0, 0, 0, 0, 0, 0 } }
   , joint_velocities_{ { 0, 0, 0, 0, 0, 0 } }
   , joint_efforts_{ { 0, 0, 0, 0, 0, 0 } }
+  , gravity_vector_{ {0, 0, 9.81} }
   , standard_analog_input_{ { 0, 0 } }
   , standard_analog_output_{ { 0, 0 } }
   , joint_names_(6)
@@ -276,6 +277,8 @@ bool HardwareInterface::init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw
   //   set_digital_out(0, True)
   // end
   command_sub_ = robot_hw_nh.subscribe("script_command", 1, &HardwareInterface::commandCallback, this);
+
+  gravity_sub_ = robot_hw_nh.subscribe("gravity_vector", 1, &HardwareInterface::gravityCallback, this);
 
   // Names of the joints. Usually, this is given in the controller config file.
   if (!root_nh.getParam("hardware_interface/joints", joint_names_))
@@ -518,11 +521,11 @@ void HardwareInterface::write(const ros::Time& time, const ros::Duration& period
   {
     if (position_controller_running_)
     {
-      ur_driver_->writeJointCommand(joint_position_command_, comm::ControlMode::MODE_SERVOJ);
+      ur_driver_->writeJointCommand(joint_position_command_, gravity_vector_, comm::ControlMode::MODE_SERVOJ);
     }
     else if (velocity_controller_running_)
     {
-      ur_driver_->writeJointCommand(joint_velocity_command_, comm::ControlMode::MODE_SPEEDJ);
+      ur_driver_->writeJointCommand(joint_velocity_command_, gravity_vector_, comm::ControlMode::MODE_SPEEDJ);
     }
     else
     {
@@ -913,6 +916,14 @@ void HardwareInterface::commandCallback(const std_msgs::StringConstPtr& msg)
   {
     ROS_ERROR_STREAM("Error sending script to robot");
   }
+}
+
+void HardwareInterface::gravityCallback(const geometry_msgs::Vector3ConstPtr& msg)
+{
+  // TODO: check realtime safety and multithreading protection
+  gravity_vector_[0] = msg->x;
+  gravity_vector_[1] = msg->y;
+  gravity_vector_[2] = msg->z;
 }
 
 void HardwareInterface::publishRobotAndSafetyMode()

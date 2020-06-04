@@ -176,6 +176,15 @@ bool UrDriver::writeJointCommand(const vector6d_t& values, const comm::ControlMo
   return false;
 }
 
+bool UrDriver::writeJointCommand(const vector6d_t& values, const vector3d_t& gravity, const comm::ControlMode control_mode)
+{
+  if (reverse_interface_active_)
+  {
+    return reverse_interface_->write(&values, &gravity, control_mode);
+  }
+  return false;
+}
+
 bool UrDriver::writeKeepalive()
 {
   if (reverse_interface_active_)

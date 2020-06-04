@@ -122,6 +122,62 @@ public:
   }
 
   /*!
+   * \brief Writes needed information to the robot to be read by the URCaps program.
+   *
+   * \param positions A vector of joint targets for the robot
+   * \param gravity The gravity vector of UR robot
+   * \param control_mode Control mode assigned to this command. See documentation of ::ControlMode
+   * for details on possible values.
+   *
+   * \returns True, if the write was performed successfully, false otherwise.
+   */
+  bool write(const vector6d_t* positions, const vector3d_t* gravity, const ControlMode control_mode = ControlMode::MODE_IDLE)
+  {
+    uint8_t buffer[sizeof(int32_t) * 11];
+    uint8_t* b_pos = buffer;
+
+    // The first element is always the keepalive signal.
+    int32_t val = htobe32(1);
+    b_pos += append(b_pos, val);
+
+    if (positions != nullptr)
+    {
+      for (auto const& pos : *positions)
+      {
+        int32_t val = static_cast<int32_t>(pos * MULT_JOINTSTATE);
+        val = htobe32(val);
+        b_pos += append(b_pos, val);
+      }
+    }
+    else
+    {
+      b_pos += 6 * sizeof(int32_t);
+    }
+
+    val = htobe32(toUnderlying(control_mode));
+    b_pos += append(b_pos, val);
+
+    if (gravity != nullptr)
+    {
+      for (auto const &value : *gravity)
+      {
+        int32_t val = static_cast<int32_t>(val * MULT_JOINTSTATE);
+        val = htobe32(val);
+        b_pos += append(b_pos, val);
+      }
+    }
+    else
+    {
+      b_pos += 3 * sizeof(int32_t);
+    }
+    
+    size_t written;
+
+    return server_.write(buffer, sizeof(buffer), written);
+  }
+
+
+  /*!
    * \brief Reads a keepalive signal from the robot.
    *
    * \returns The received keepalive string or the empty string, if nothing was received

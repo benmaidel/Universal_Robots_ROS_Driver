@@ -129,6 +129,18 @@ public:
   bool writeJointCommand(const vector6d_t& values, const comm::ControlMode control_mode);
 
   /*!
+   * \brief Writes a joint command together with a keepalive signal and a gravity vector onto the socket being sent to
+   * the robot.
+   *
+   * \param values Desired joint positions
+   * \param gravity Current UR gravity vector
+   * \param control_mode Control mode this command is assigned to.
+   *
+   * \returns True on successful write.
+   */
+  bool writeJointCommand(const vector6d_t& values, const vector3d_t& gravity, const comm::ControlMode control_mode);
+
+  /*!
    * \brief Write a keepalive signal only.
    *
    * This signals the robot that the connection is still
