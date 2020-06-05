@@ -519,13 +519,17 @@ void HardwareInterface::write(const ros::Time& time, const ros::Duration& period
        runtime_state_ == static_cast<uint32_t>(rtde_interface::RUNTIME_STATE::PAUSING)) &&
       robot_program_running_ && (!non_blocking_read_ || packet_read_))
   {
+    bool success;
+    bool with_gravity = gravity_sub_.getNumPublishers() > 0;
     if (position_controller_running_)
     {
-      ur_driver_->writeJointCommand(joint_position_command_, gravity_vector_, comm::ControlMode::MODE_SERVOJ);
+      success = with_gravity ? ur_driver_->writeJointCommand(joint_position_command_, gravity_vector_, comm::ControlMode::MODE_SERVOJ) 
+                            : ur_driver_->writeJointCommand(joint_position_command_, comm::ControlMode::MODE_SERVOJ);
     }
     else if (velocity_controller_running_)
     {
-      ur_driver_->writeJointCommand(joint_velocity_command_, gravity_vector_, comm::ControlMode::MODE_SPEEDJ);
+      success = with_gravity ? ur_driver_->writeJointCommand(joint_position_command_, gravity_vector_, comm::ControlMode::MODE_SPEEDJ)
+                            : ur_driver_->writeJointCommand(joint_position_command_, comm::ControlMode::MODE_SPEEDJ);
     }
     else
     {

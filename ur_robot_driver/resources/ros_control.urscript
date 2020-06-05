@@ -116,14 +116,15 @@ textmsg("External control active")
 params_mult = socket_read_binary_integer(1+6+1+3, "reverse_socket")
 keepalive = params_mult[1]
 
-setGravity(params_mult)
 thread_gravity = run gravityThread()
 
 while keepalive > 0 and control_mode > MODE_STOPPED:
   enter_critical
   socket_send_line(1, "reverse_socket")
   params_mult = socket_read_binary_integer(1+6+1+3, "reverse_socket", 0.02) # steptime could work as well, but does not work in simulation
-  setGravity(params_mult)
+  with_gravity = params_mult[0] > 8
+  if with_gravity:
+    setGravity(params_mult)
   if params_mult[0] > 0:
     keepalive = params_mult[1]
     if control_mode != params_mult[8]:
