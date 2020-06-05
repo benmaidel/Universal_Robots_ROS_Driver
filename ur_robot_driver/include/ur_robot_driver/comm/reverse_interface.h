@@ -161,7 +161,7 @@ public:
     {
       for (auto const &value : *gravity)
       {
-        int32_t val = static_cast<int32_t>(val * MULT_JOINTSTATE);
+        int32_t val = static_cast<int32_t>(value * MULT_JOINTSTATE);
         val = htobe32(val);
         b_pos += append(b_pos, val);
       }
@@ -170,7 +170,7 @@ public:
     {
       b_pos += 3 * sizeof(int32_t);
     }
-    
+
     size_t written;
 
     return server_.write(buffer, sizeof(buffer), written);
