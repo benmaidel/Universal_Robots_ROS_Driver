@@ -51,7 +51,7 @@ HardwareInterface::HardwareInterface()
   , joint_positions_{ { 0, 0, 0, 0, 0, 0 } }
   , joint_velocities_{ { 0, 0, 0, 0, 0, 0 } }
   , joint_efforts_{ { 0, 0, 0, 0, 0, 0 } }
-  , gravity_vector_{ {0, 0, 9.81} }
+  , gravity_vector_{ {0.0, 0.0, 0.0} }
   , standard_analog_input_{ { 0, 0 } }
   , standard_analog_output_{ { 0, 0 } }
   , joint_names_(6)
@@ -519,20 +519,17 @@ void HardwareInterface::write(const ros::Time& time, const ros::Duration& period
        runtime_state_ == static_cast<uint32_t>(rtde_interface::RUNTIME_STATE::PAUSING)) &&
       robot_program_running_ && (!non_blocking_read_ || packet_read_))
   {
-    bool with_gravity = gravity_sub_.getNumPublishers() > 0;
     if (position_controller_running_)
     {
-      with_gravity ? ur_driver_->writeJointCommand(joint_position_command_, gravity_vector_, comm::ControlMode::MODE_SERVOJ)
-                            : ur_driver_->writeJointCommand(joint_position_command_, comm::ControlMode::MODE_SERVOJ);
+      ur_driver_->writeJointCommand(joint_position_command_, gravity_vector_, comm::ControlMode::MODE_SERVOJ);
     }
     else if (velocity_controller_running_)
     {
-      with_gravity ? ur_driver_->writeJointCommand(joint_position_command_, gravity_vector_, comm::ControlMode::MODE_SPEEDJ)
-                            : ur_driver_->writeJointCommand(joint_position_command_, comm::ControlMode::MODE_SPEEDJ);
+      ur_driver_->writeJointCommand(joint_position_command_, gravity_vector_, comm::ControlMode::MODE_SPEEDJ);
     }
     else
     {
-      ur_driver_->writeKeepalive();
+      ur_driver_->writeKeepalive(gravity_vector_);
     }
     packet_read_ = false;
   }

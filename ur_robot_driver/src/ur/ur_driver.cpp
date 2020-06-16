@@ -185,12 +185,12 @@ bool UrDriver::writeJointCommand(const vector6d_t& values, const vector3d_t& gra
   return false;
 }
 
-bool UrDriver::writeKeepalive()
+bool UrDriver::writeKeepalive(const vector3d_t& gravity)
 {
   if (reverse_interface_active_)
   {
     vector6d_t* fake = nullptr;
-    return reverse_interface_->write(fake, comm::ControlMode::MODE_IDLE);
+    return reverse_interface_->write(fake, &gravity, comm::ControlMode::MODE_IDLE);
   }
   return false;
 }

@@ -146,9 +146,11 @@ public:
    * This signals the robot that the connection is still
    * active in times when no commands are to be sent (e.g. no controller is active.)
    *
+   * \param gravity The ur gravity vector. Always needs to be send.
+   *
    * \returns True on successful write.
    */
-  bool writeKeepalive();
+  bool writeKeepalive(const vector3d_t& gravity);
 
   /*!
    * \brief Starts the RTDE communication.

@@ -168,7 +168,10 @@ public:
     }
     else
     {
-      b_pos += 3 * sizeof(int32_t);
+      int32_t val = 0;
+      val = htobe32(val);
+      for (int i : {0, 0, 0})
+        b_pos += append(b_pos, val);
     }
 
     size_t written;
